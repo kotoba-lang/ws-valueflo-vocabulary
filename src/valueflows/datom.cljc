@@ -70,6 +70,8 @@
        (:input-of event) (assoc :vf.event/input-of (str (:input-of event)))
        (:output-of event) (assoc :vf.event/output-of (str (:output-of event)))
        (:has-point-in-time event) (assoc :vf.event/has-point-in-time (str (:has-point-in-time event)))
+       (:fulfills event) (assoc :vf.event/fulfills (str (:fulfills event)))
+       (:satisfies event) (assoc :vf.event/satisfies (str (:satisfies event)))
        (:note event) (assoc :vf.event/note (:note event))
        (:repo/path event) (assoc :repo/path (:repo/path event))))))
 
@@ -87,34 +89,83 @@
      (:state r) (assoc :vf.resource/state (str (:state r)))
      (:conforms-to r) (assoc :vf.resource/conforms-to (str (:conforms-to r))))))
 
+(defn commitment->entity
+  "A Commitment or Intent. Same dataset as events and resources on purpose:
+   'which promise did this event settle' is a join, and a separate ref would
+   put the two halves out of reach of one another."
+  [i c]
+  (let [a (:action c)]
+    (merge
+     (base i)
+     {:vf.commitment/id (str (:id c))
+      :vf.commitment/action (some-> a name)}
+     (when (vocab/action? a)
+       {:vf.commitment/effort-based? (vocab/effort-based? a)})
+     (agent-attrs "vf.commitment/provider" (:provider c))
+     (agent-attrs "vf.commitment/receiver" (:receiver c))
+     (measure->attrs "vf.commitment/resource-quantity" (:resource-quantity c))
+     (measure->attrs "vf.commitment/effort-quantity" (:effort-quantity c))
+     (measure->attrs "vf.commitment/minimum-quantity" (:minimum-quantity c))
+     (measure->attrs "vf.commitment/available-quantity" (:available-quantity c))
+     (cond-> {}
+       (:resource-conforms-to c) (assoc :vf.commitment/resource-conforms-to (str (:resource-conforms-to c)))
+       (:due c) (assoc :vf.commitment/due (str (:due c)))
+       ;; `finished` is recorded as given, including absent. Upstream defaults
+       ;; it to false, but "recorded false" and "never stated" are different
+       ;; facts and only one of them was measured.
+       (contains? c :finished) (assoc :vf.commitment/finished (boolean (:finished c)))
+       (:satisfies c) (assoc :vf.commitment/satisfies (str (:satisfies c)))
+       (:clause-of c) (assoc :vf.commitment/clause-of (str (:clause-of c)))
+       (:independent-demand-of c) (assoc :vf.commitment/independent-demand-of
+                                         (str (:independent-demand-of c)))
+       (:planned-within c) (assoc :vf.commitment/planned-within (str (:planned-within c)))
+       (:repo/path c) (assoc :repo/path (:repo/path c))))))
+
 (defn coverage->entity
   "What was NOT projected. Declared as an entity so a count query cannot read
    as complete coverage — the same device `:concept/coverage` uses."
-  [i {:keys [events-in events-out resources-in resources-out skipped-reasons]}]
+  [i {:keys [events-in events-out resources-in resources-out
+             commitments-in commitments-out skipped-reasons]}]
   (merge (base i)
          {:vf.coverage/events-offered events-in
           :vf.coverage/events-projected events-out
           :vf.coverage/resources-offered resources-in
           :vf.coverage/resources-projected resources-out
+          :vf.coverage/commitments-offered (or commitments-in 0)
+          :vf.coverage/commitments-projected (or commitments-out 0)
           :vf.coverage/complete? (and (= events-in events-out)
-                                      (= resources-in resources-out))}
+                                      (= resources-in resources-out)
+                                      (= (or commitments-in 0) (or commitments-out 0)))}
          (when (seq skipped-reasons)
            {:vf.coverage/skipped-reasons (pr-str skipped-reasons)})))
 
 (defn project
-  "events + inventory -> tx-data ready for `d/transact`, ending with one
-   coverage entity. Events that are not maps are skipped and counted, never
-   silently dropped."
-  [events inventory]
-  (let [evs (vec (filter map? events))
-        res (vec (filter (fn [[_ v]] (map? v)) inventory))
-        ents (concat (map-indexed event->entity evs)
-                     (map-indexed (fn [i r] (resource->entity (+ i (count evs)) r)) res))
-        skipped (cond-> []
-                  (< (count evs) (count events)) (conj :non-map-event)
-                  (< (count res) (count inventory)) (conj :non-map-resource))]
-    (conj (vec ents)
-          (coverage->entity (+ (count evs) (count res))
-                            {:events-in (count events) :events-out (count evs)
-                             :resources-in (count inventory) :resources-out (count res)
-                             :skipped-reasons skipped}))))
+  "events + inventory (+ commitments) -> tx-data ready for `d/transact`,
+   ending with one coverage entity. Anything that is not a map is skipped and
+   counted, never silently dropped.
+
+   Commitments and intents go in the SAME dataset as the events that settle
+   them. `vf.event/fulfills` -> `vf.commitment/id` is the join that answers
+   'was this promise kept', and splitting the two would put the halves out of
+   reach of one another."
+  ([events inventory] (project events inventory nil))
+  ([events inventory commitments]
+   (let [evs (vec (filter map? events))
+         res (vec (filter (fn [[_ v]] (map? v)) inventory))
+         cms (vec (filter map? commitments))
+         n-e (count evs)
+         n-r (count res)
+         ents (concat (map-indexed event->entity evs)
+                      (map-indexed (fn [i r] (resource->entity (+ i n-e) r)) res)
+                      (map-indexed (fn [i c] (commitment->entity (+ i n-e n-r) c)) cms))
+         skipped (cond-> []
+                   (< n-e (count events)) (conj :non-map-event)
+                   (< n-r (count inventory)) (conj :non-map-resource)
+                   (< (count cms) (count commitments)) (conj :non-map-commitment))]
+     (conj (vec ents)
+           (coverage->entity (+ n-e n-r (count cms))
+                             {:events-in (count events) :events-out n-e
+                              :resources-in (count inventory) :resources-out n-r
+                              :commitments-in (count commitments)
+                              :commitments-out (count cms)
+                              :skipped-reasons skipped})))))

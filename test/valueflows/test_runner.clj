@@ -7,6 +7,7 @@
             [valueflows.event-test]
             [valueflows.conform-test]
             [valueflows.datom-test]
+            [valueflows.commitment-test]
             [valueflows.mapping-test]))
 
 (def namespaces
@@ -14,9 +15,10 @@
     valueflows.event-test
     valueflows.conform-test
     valueflows.datom-test
+    valueflows.commitment-test
     valueflows.mapping-test])
 
-(def ^:private minimum-namespaces 5)
+(def ^:private minimum-namespaces 6)
 
 (defn -main [& _]
   (when (< (count namespaces) minimum-namespaces)

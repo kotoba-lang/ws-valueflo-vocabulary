@@ -67,3 +67,60 @@
     (let [tx (d/project [] {})]
       (is (= 1 (count tx)))
       (is (= 0 (:vf.coverage/events-offered (first tx)))))))
+
+;; ── commitments ───────────────────────────────────────────────────────────
+
+(def commitments
+  [{:id "po-1" :action :transfer :provider {:id "mill"} :receiver {:id "bakery"}
+    :resource-conforms-to :flour :resource-quantity {:has-numerical-value 100 :has-unit :kg}
+    :due 10 :finished false :independent-demand-of "plan-q3"}
+   {:id "offer-1" :action :transfer :provider {:id "bakery"}
+    :resource-quantity {:has-numerical-value 200 :has-unit :each}
+    :minimum-quantity {:has-numerical-value 50 :has-unit :each}}])
+
+(deftest the-fulfilment-join-exists-in-one-dataset
+  ;; vf.event/fulfills -> vf.commitment/id is the join that answers "was this
+  ;; promise kept". Both sides must be in the same dataset to be reachable.
+  (let [tx (d/project [(assoc (first events) :action :transfer :fulfills "po-1"
+                              :resource-quantity {:has-numerical-value 40 :has-unit :kg})]
+                      {} commitments)
+        ev (first (filter :vf.event/fulfills tx))
+        cm (first (filter #(= "po-1" (:vf.commitment/id %)) tx))]
+    (is (= "po-1" (:vf.event/fulfills ev)))
+    (is (some? cm))
+    (is (= 1 (count (distinct (map :source/dataset tx)))))
+    (is (= (:source/dataset ev) (:source/dataset cm)))))
+
+(deftest commitment-attributes-are-projected
+  (let [tx (d/project [] {} commitments)
+        po (first (filter #(= "po-1" (:vf.commitment/id %)) tx))
+        offer (first (filter #(= "offer-1" (:vf.commitment/id %)) tx))]
+    (is (= "transfer" (:vf.commitment/action po)))
+    (is (= 100 (:vf.commitment/resource-quantity-value po)))
+    (is (= "kg" (:vf.commitment/resource-quantity-unit po)))
+    (is (= "10" (:vf.commitment/due po)))
+    (is (false? (:vf.commitment/finished po)))
+    (is (= "plan-q3" (:vf.commitment/independent-demand-of po)))
+    (is (= 50 (:vf.commitment/minimum-quantity-value offer)))))
+
+(deftest never-stated-and-stated-false-are-different-facts
+  (let [tx (d/project [] {} commitments)
+        offer (first (filter #(= "offer-1" (:vf.commitment/id %)) tx))]
+    (is (not (contains? offer :vf.commitment/finished))
+        "the offer never stated finished; it must not be recorded as false")))
+
+(deftest commitments-are-counted-in-coverage
+  (let [cov (last (d/project events inventory commitments))]
+    (is (= 2 (:vf.coverage/commitments-offered cov)))
+    (is (= 2 (:vf.coverage/commitments-projected cov)))
+    (is (true? (:vf.coverage/complete? cov))))
+  (testing "a non-map commitment is counted, not dropped"
+    (let [cov (last (d/project events inventory (conj commitments "nope")))]
+      (is (= 3 (:vf.coverage/commitments-offered cov)))
+      (is (= 2 (:vf.coverage/commitments-projected cov)))
+      (is (false? (:vf.coverage/complete? cov)))
+      (is (re-find #"non-map-commitment" (:vf.coverage/skipped-reasons cov)))))
+  (testing "the two-arity call still works and reports zero commitments"
+    (let [cov (last (d/project events inventory))]
+      (is (= 0 (:vf.coverage/commitments-offered cov)))
+      (is (true? (:vf.coverage/complete? cov))))))

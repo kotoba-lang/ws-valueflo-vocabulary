@@ -77,12 +77,17 @@
     :evidence "orgs/cloud-itonami/credits/README.md constitutional boundary, read 2026-08-15"}
 
    :Commitment
-   {:status :absent
-    :note "Nothing here records a promised future economic event with a due date and a fulfilment link."
-    :false-friends [:cloud-itonami-commitment-ledger]}
+   {:status :vf-native
+    :was :absent
+    :vf-native "valueflows.commitment"
+    :note "A promise with an action, a quantity, a due date and a fulfilment link. Settled by `vf:fulfills` from economic events. `vf:finished` is kept distinct from fulfilled, per upstream: it means no more will be done, so a commitment closed at 60% is :closed-short rather than an error or a success."
+    :note-on-absence "Before 2026-08-15 nothing here recorded a promise and then answered whether it was kept. Observed events existed (ENGI transfers, PLM postings) and planned quantities existed (MPS), but not the link between them."}
 
    :Intent
-   {:status :absent}
+   {:status :vf-native
+    :was :absent
+    :vf-native "valueflows.commitment/satisfaction"
+    :note "A wanted or offered flow, satisfied by commitments or events through `vf:satisfies`. `vf:minimumQuantity` is checked separately from the ratio: below the stated floor is its own fact, not merely low progress."}
 
    :Proposal
    {:status :absent
@@ -108,6 +113,7 @@
     :their-meaning "a LOAN commitment: a lender's governed offer of loan-based support to a self-registered business, V1 lending only, equity language is a hard governor violation"
     :vf-meaning "vf:Commitment — a planned economic flow that a future EconomicEvent fulfils"
     :do-not "treat the ledger's records as vf:Commitment instances"
+    :sharper-since "2026-08-15: a real vf:Commitment now exists in valueflows.commitment, so the two can actually be wired together by mistake. Before, the confusion was only verbal."
     :evidence "orgs/cloud-itonami/cloud-itonami-commitment-ledger/README.md, read 2026-08-15"}
 
    :engi-economic-event

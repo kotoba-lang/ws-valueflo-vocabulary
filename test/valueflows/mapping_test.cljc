@@ -50,17 +50,29 @@
     (is (:vf-meaning v) (str k))
     (is (:do-not v) (str k " does not say what not to do"))))
 
-(deftest a-commitment-is-still-absent-and-the-ledger-does-not-count
-  (is (= :absent (:status (:Commitment m/classes))))
-  (is (= [:cloud-itonami-commitment-ledger]
-         (:false-friends (:Commitment m/classes)))))
+(deftest commitment-and-intent-exist-now-and-say-they-did-not-before
+  ;; They were :absent until 2026-08-15. Keeping :was means the history is not
+  ;; smoothed over once the gap is closed -- the same device :critical-path uses.
+  (is (= :vf-native (:status (:Commitment m/classes))))
+  (is (= :absent (:was (:Commitment m/classes))))
+  (is (= :vf-native (:status (:Intent m/classes))))
+  (is (= :absent (:was (:Intent m/classes))))
+  (is (string? (:note-on-absence (:Commitment m/classes)))
+      "what was missing is recorded, not just that something now exists"))
+
+(deftest the-ledger-is-a-sharper-false-friend-now-that-a-real-commitment-exists
+  (let [ff (:cloud-itonami-commitment-ledger m/false-friends)]
+    (is (string? (:sharper-since ff))
+        "before, the confusion was verbal; now the two can actually be wired together")))
 
 (deftest gaps-are-queryable
   (let [g (m/gaps)]
-    (is (contains? g :Commitment))
     (is (contains? g :cash-flow))
+    (is (contains? g :Proposal) "still absent")
+    (is (not (contains? g :Commitment)) "closed 2026-08-15, so no longer a gap")
+    (is (not (contains? g :Intent)))
     (is (not (contains? g :dependent-demand)) "mapped, so not a gap")
-    (is (not (contains? g :critical-path)) "now vf-native, so not a gap")))
+    (is (not (contains? g :critical-path)) "vf-native, so not a gap")))
 
 (deftest coverage-is-stated-rather-than-implied
   (let [s (m/summary)]

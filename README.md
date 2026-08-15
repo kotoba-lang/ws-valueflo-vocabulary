@@ -70,16 +70,45 @@ eye.
 | `valueflows.data` | the vocabulary, generated. Not hand-edited |
 | `valueflows.vocabulary` | read access; the only place that knows the shape |
 | `valueflows.event` | apply events to an inventory, driven by the table |
+| `valueflows.commitment` | promises and their settlement: `vf:fulfills`, `vf:satisfies` |
 | `valueflows.conform` | structural conformance of events / commitments / intents |
 | `valueflows.datom` | projection onto this workspace's datom plane |
 | `valueflows.mapping` | where each VF term already lives here, and where it does not |
+
+## Promises, and whether they were kept
+
+```clojure
+(require '[valueflows.commitment :as cm])
+
+(cm/fulfilment {:id "po-1" :action :transfer :resource-quantity {:has-numerical-value 100 :has-unit :kg} :due 10}
+               [{:action :transfer :fulfills "po-1" :resource-quantity {:has-numerical-value 60 :has-unit :kg}}]
+               {:as-of 11})
+;=> {:ok? true :state :partially-fulfilled :ratio 3/5
+;;   :outstanding {:has-numerical-value 40 :has-unit :kg} :overdue true}
+```
+
+Three distinctions this keeps that a percentage alone loses:
+
+- **`finished` is not `fulfilled`.** Upstream defines `vf:finished` as "no more
+  will be done … irrespective of if the original goal has been met", so a
+  commitment closed at 60% is `:closed-short` — an ordinary outcome, neither a
+  success nor an error, and still reported as 40 kg short.
+- **Overdue needs an `:as-of`.** Without one, and for a promise with no due
+  date, the answer is `:unknown` rather than `false`.
+- **An orphan `:fulfills`** — an event settling a commitment nobody has —
+  is listed, because every other commitment in the batch looks correctly
+  settled.
+
+Deadlines may be caller-defined period numbers **or** ISO-8601 strings (which
+sort chronologically, so no date library is needed). The two are never compared
+to each other.
 
 ## Regenerate and verify
 
 ```sh
 nbb bin/ingest.cljs           # TTL -> vocabulary.edn + src/valueflows/data.cljc
 nbb bin/ingest.cljs --check    # 0 identical / 1 stale / 2 could not answer
-clojure -M:test                # 44 tests, 425 assertions
+clojure -M:test                # 68 tests, 522 assertions
 ```
 
 `--check` is three-valued on purpose. A missing TTL, a sha256 that does not
