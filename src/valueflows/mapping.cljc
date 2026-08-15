@@ -91,15 +91,20 @@
     :note "A wanted or offered flow, satisfied by commitments or events through `vf:satisfies`. `vf:minimumQuantity` is checked separately from the ratio: below the stated floor is its own fact, not merely low progress."}
 
    :Proposal
-   {:status :absent
-    :note "Offers and requests exist as business surfaces, not as vf:Proposal records."}
+   {:status :vf-native
+    :was :absent
+    :vf-native "valueflows.proposal"
+    :note "Offers and requests with what is expected in return. A one-sided proposal (gift, grant, mutual aid) is described, not rejected -- upstream's \"sometimes with what is expected in return\" is load-bearing. vf:unitBased gates multiplication: a price-list line scales into commitments, a one-off offer refuses to."}
 
    :Agreement
-   {:status :partial
-    :where ["orgs/cloud-itonami/cloud-itonami-app"]
-    :note "Contracts and tenant connections bind parties, but are not modelled as reciprocal commitment bundles."
-    :gap :not-reciprocal-commitments
-    :evidence "orgs/cloud-itonami/cloud-itonami-app/docs/adr/0008-business-is-the-join-of-five-planes.md (Contracts view) and docs/adr/0014-agent-loops-use-tenant-bound-connections.md, read 2026-08-15"}
+   {:status :vf-native
+    :was :partial
+    :was-gap :not-reciprocal-commitments
+    :gap-closed "2026-08-15"
+    :vf-native "valueflows.proposal/agreement-balance"
+    :note "Primary commitments (vf:stipulates) against reciprocal ones (vf:stipulatesReciprocal), each settled through valueflows.commitment. Answers the question an agreement exists for: which party has delivered while the other still owes. Repaid and written-off are kept apart -- :both-closed? covers both, :both-fulfilled? only the first -- because a single :settled? flag would collapse a loan repaid with a loan lost."
+    :note-on-cloud-itonami-app "Contracts and tenant connections in cloud-itonami-app still bind parties without being modelled as reciprocal bundles; that repository has not been migrated. This entry records that the SHAPE now exists, not that the app uses it."
+    :evidence "orgs/cloud-itonami/cloud-itonami-app/docs/adr/0008-business-is-the-join-of-five-planes.md (Contracts view), read 2026-08-15"}
 
    :Unit
    {:status :partial
@@ -115,6 +120,7 @@
     :vf-meaning "vf:Commitment — a planned economic flow that a future EconomicEvent fulfils"
     :do-not "treat the ledger's records as vf:Commitment instances"
     :sharper-since "2026-08-15: a real vf:Commitment now exists in valueflows.commitment, so the two can actually be wired together by mistake. Before, the confusion was only verbal."
+    :the-right-shape "A loan is an vf:Agreement: the principal is a primary commitment (vf:stipulates) and the repayments are reciprocal ones (vf:stipulatesReciprocal). valueflows.proposal/agreement-balance then answers whether the lender is exposed, and keeps repaid apart from written-off. The ledger's own record is still not a vf:Commitment -- this is how the same business fact would be expressed in Valueflows terms."
     :evidence "orgs/cloud-itonami/cloud-itonami-commitment-ledger/README.md, read 2026-08-15"}
 
    :engi-economic-event

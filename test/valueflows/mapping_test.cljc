@@ -75,10 +75,22 @@
     (is (string? (:sharper-since ff))
         "before, the confusion was verbal; now the two can actually be wired together")))
 
+(deftest the-loan-case-records-how-it-would-be-expressed
+  ;; The false friend stays a false friend -- the ledger's record is still not
+  ;; a vf:Commitment -- but the entry now also says what the right shape is,
+  ;; so the next person does not have to work it out again.
+  (is (string? (:the-right-shape (:cloud-itonami-commitment-ledger m/false-friends))))
+  (is (= :vf-native (:status (:Agreement m/classes))))
+  (is (= :vf-native (:status (:Proposal m/classes)))))
+
+(deftest a-shape-existing-is-not-a-repository-using-it
+  ;; :Agreement is :vf-native because the shape exists here. cloud-itonami-app
+  ;; has not been migrated, and the entry says so rather than implying uptake.
+  (is (string? (:note-on-cloud-itonami-app (:Agreement m/classes)))))
+
 (deftest gaps-are-queryable
   (let [g (m/gaps)]
     (is (contains? g :cash-flow))
-    (is (contains? g :Proposal) "still absent")
     (is (not (contains? g :Commitment)) "closed 2026-08-15, so no longer a gap")
     (is (not (contains? g :Intent)))
     (is (not (contains? g :dependent-demand)) "mapped, so not a gap")

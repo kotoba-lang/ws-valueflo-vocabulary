@@ -71,6 +71,7 @@ eye.
 | `valueflows.vocabulary` | read access; the only place that knows the shape |
 | `valueflows.event` | apply events to an inventory, driven by the table |
 | `valueflows.commitment` | promises and their settlement: `vf:fulfills`, `vf:satisfies` |
+| `valueflows.proposal` | offers, requests, and reciprocity: `vf:Proposal`, `vf:Agreement` |
 | `valueflows.unit` | which spellings mean one unit, and what may be added at all |
 | `valueflows.conform` | structural conformance of events / commitments / intents |
 | `valueflows.datom` | projection onto this workspace's datom plane |
@@ -103,6 +104,55 @@ Three distinctions this keeps that a percentage alone loses:
 Deadlines may be caller-defined period numbers **or** ISO-8601 strings (which
 sort chronologically, so no date library is needed). The two are never compared
 to each other.
+
+## Reciprocity
+
+An offer is not much use without what is expected back, and an agreement's whole
+job is to say whether both sides delivered.
+
+```clojure
+(require '[valueflows.proposal :as p])
+
+;; a price-list line multiplies into commitments -- BOTH sides scale
+(p/commitments-from price-list-line 3 {:agreement "agr-1" :due 12})
+;=> {:ok? true :commitments [{... 3 loaves}] :reciprocal-commitments [{... 1500 JPY}]}
+
+(p/commitments-from one-off-offer 3 {})
+;=> {:ok? false :insufficient :not-unit-based}
+```
+
+`vf:unitBased` gates that multiplication, exactly as upstream describes it
+("can be multiplied to create commitments; commonly seen in a price list").
+Three of *this specific used bicycle* is a category error, not a bigger order.
+Scaling the goods without the payment is how a price list becomes a loss, so
+both sides scale together.
+
+For agreements, `agreement-balance` answers **which party is exposed** —
+delivered while the other still owes:
+
+```clojure
+(p/agreement-balance loan events {:as-of 7})
+;=> {:ok? true :one-sided-exposure :reciprocal-outstanding
+;;   :both-fulfilled? false :both-closed? false}
+```
+
+Two distinctions kept deliberately:
+
+- **A one-sided deal is described, not rejected.** Upstream's "*sometimes* with
+  what is expected in return" is load-bearing: a gift, a grant and a mutual-aid
+  contribution have nothing reciprocal, and rejecting them would make this
+  unable to express most of what a commons does.
+- **Repaid and written off are both `:both-closed?`, but only one is
+  `:both-fulfilled?`.** A lender whose loan was written off is no longer
+  waiting, so there is no exposure — but they did lose the money, and
+  `:closed-short` names which commitments. One `:settled?` flag would have
+  destroyed that, and the first draft of this namespace did exactly that until a
+  test caught it.
+
+This is also the shape a loan takes in Valueflows terms: the principal is a
+primary commitment, the repayments are reciprocal ones. `valueflows.mapping`
+records that next to the `cloud-itonami-commitment-ledger` false friend, whose
+"commitment" still means something else.
 
 ## Units
 
@@ -157,7 +207,7 @@ it exits **2**, not 0.
 nbb bin/ingest.cljs           # TTL -> vocabulary.edn + src/valueflows/data.cljc
 nbb bin/ingest.cljs --check    # 0 identical / 1 stale / 2 could not answer
 nbb bin/units.cljs             # units.edn -> src/valueflows/unit_data.cljc
-clojure -M:test                # 80 tests, 582 assertions
+clojure -M:test                # 99 tests, 652 assertions
 ```
 
 `--check` is three-valued on purpose. A missing TTL, a sha256 that does not
