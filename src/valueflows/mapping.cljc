@@ -40,9 +40,10 @@
    :EconomicResource
    {:status :mapped
     :where ["orgs/kotoba-lang/plm"]
-    :note "PLM items with perpetual on-hand. VF splits accounting from onhand quantity; plm keeps one (erp.inventory/qty-on-hand)."
-    :gap :no-separate-accounting-quantity
-    :evidence "src/kotoba/plm/mrp.cljc on-hand, read 2026-08-15"}
+    :note "PLM items with BOTH registers: :erp.inventory/qty-on-hand is custody, :erp.inventory/qty-accounting is ownership. kotoba.plm.registers derives which one a movement touches from this vocabulary rather than hardcoding it, so consignment stock (transferCustody) and title sales in transit (transferAllRights) are now representable. MRP nets against custody."
+    :was-gap :no-separate-accounting-quantity
+    :gap-closed "2026-08-15"
+    :evidence "kotoba-lang/plm src/kotoba/plm/registers.cljc + schema.cljc :erp.inventory/qty-accounting; 31 tests / 118 assertions, including an integration assertion through receive-goods! and complete-production! that fails when the posting is broken"}
 
    :ResourceSpecification
    {:status :mapped

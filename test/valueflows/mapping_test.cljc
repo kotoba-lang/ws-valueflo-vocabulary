@@ -23,6 +23,16 @@
     (when (= :partial (:status v))
       (is (or (:gap v) (:note v)) (str k " is partial but says nothing about which part")))))
 
+(deftest a-closed-gap-says-what-it-was-and-when
+  ;; :gap becomes :was-gap rather than disappearing, so "this was once wrong"
+  ;; survives the fix -- the same reason :critical-path keeps :was :absent.
+  (doseq [[k v] (merge m/classes m/algorithms)]
+    (when (:was-gap v)
+      (is (string? (:gap-closed v)) (str k " closed a gap without saying when"))
+      (is (nil? (:gap v)) (str k " claims a gap both open and closed"))))
+  (is (= :no-separate-accounting-quantity (:was-gap (:EconomicResource m/classes))))
+  (is (= "2026-08-15" (:gap-closed (:EconomicResource m/classes)))))
+
 (deftest the-eight-network-based-algorithms-are-all-accounted-for
   (is (= #{:dependent-demand :critical-path :value-rollup :value-equation
            :track-and-trace :provenance :cash-flow :network-flows}
