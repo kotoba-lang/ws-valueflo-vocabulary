@@ -188,3 +188,29 @@
                               (keys (:inventory r))))]
     (is (:ok? r))
     (is (= 100 total))))
+
+(deftest two-spellings-of-one-unit-no-longer-collide
+  ;; The registry earns its place here: before it, a supplier writing
+  ;; :kilogram and a work order writing :kg produced :unit-mismatch on a
+  ;; quantity that was fine.
+  (let [start {"flour" {:onhand-quantity (kg 10) :accounting-quantity (kg 10)}}
+        r (ev/apply-event start {:action :produce
+                                 :resource-inventoried-as "flour"
+                                 :resource-quantity {:has-numerical-value 5
+                                                     :has-unit :kilogram}})]
+    (is (:ok? r))
+    (is (= 15 (ev/numerical (:inventory r) "flour" :onhand-quantity))))
+  (testing "and genuinely different units still refuse"
+    (let [start {"flour" {:onhand-quantity (kg 10) :accounting-quantity (kg 10)}}
+          r (ev/apply-event start {:action :produce
+                                   :resource-inventoried-as "flour"
+                                   :resource-quantity (hours 5)})]
+      (is (false? (:ok? r)))
+      (is (= :unit-mismatch (:code (first (:errors r)))))))
+  (testing "an unregistered spelling is not matched onto a similar one"
+    (let [start {"flour" {:onhand-quantity (kg 10) :accounting-quantity (kg 10)}}
+          r (ev/apply-event start {:action :produce
+                                   :resource-inventoried-as "flour"
+                                   :resource-quantity {:has-numerical-value 5
+                                                       :has-unit :kilo}})]
+      (is (false? (:ok? r)) ":kilo is not in the registry, so it is not kilograms"))))

@@ -24,7 +24,8 @@
 
    Errors are values, never exceptions, and an event that errors leaves the
    inventory untouched — fail closed, no partial application."
-  (:require [valueflows.vocabulary :as vocab]))
+  (:require [valueflows.vocabulary :as vocab]
+            [valueflows.unit :as unit]))
 
 ;; ── measures ──────────────────────────────────────────────────────────────
 
@@ -38,7 +39,12 @@
   (cond
     (nil? a) [:ok b]
     (nil? b) [:ok a]
-    (not= (:has-unit a) (:has-unit b)) [:error :unit-mismatch]
+    ;; Additive: exact equality still passes (including two unitless
+    ;; measures), and alias equality now passes too, so `:kg` and `:kilogram`
+    ;; stop being a spurious mismatch. Genuinely different units still fail.
+    (and (not= (:has-unit a) (:has-unit b))
+         (not (unit/same? (:has-unit a) (:has-unit b))))
+    [:error :unit-mismatch]
     :else [:ok (assoc a :has-numerical-value (+ (:has-numerical-value a)
                                                 (:has-numerical-value b)))]))
 

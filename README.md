@@ -71,6 +71,7 @@ eye.
 | `valueflows.vocabulary` | read access; the only place that knows the shape |
 | `valueflows.event` | apply events to an inventory, driven by the table |
 | `valueflows.commitment` | promises and their settlement: `vf:fulfills`, `vf:satisfies` |
+| `valueflows.unit` | which spellings mean one unit, and what may be added at all |
 | `valueflows.conform` | structural conformance of events / commitments / intents |
 | `valueflows.datom` | projection onto this workspace's datom plane |
 | `valueflows.mapping` | where each VF term already lives here, and where it does not |
@@ -103,12 +104,60 @@ Deadlines may be caller-defined period numbers **or** ISO-8601 strings (which
 sort chronologically, so no date library is needed). The two are never compared
 to each other.
 
+## Units
+
+Refusing to add hours to kilograms is only worth having if two callers spell a
+unit the same way. `valueflows.unit` is the small registry that makes that true:
+
+```clojure
+(require '[valueflows.unit :as u])
+
+(u/same? :kg :kilogram)        ;=> true
+(u/compatible? :kg :g)         ;=> true   (same quantity kind)
+(u/compatible? :en :jpy)       ;=> false  (mutual credit is not currency)
+(u/resolve-unit :kilo)         ;=> {:unit :kilo :source :unregistered}
+(u/om-2-iri :second)           ;=> ".../om-2/second-Time"
+```
+
+`vf:Unit` is `rdfs:subClassOf om:Unit`, so [om-2](http://www.ontology-of-units-of-measure.org/)
+is the authority for physical units; currencies carry an ISO 4217 code as well.
+Three things the registry exists to hold, each measured against the om-2 RDF
+distribution rather than assumed:
+
+- **om-2 has no `each`.** A count of things is `piece`; `one` is the
+  dimensionless ratio, a different quantity kind.
+- **om-2 has no bare `second` or `minute`** — they are `second-Time` and
+  `minute-Time`, because `second-Angle` also exists.
+- **om-2 capitalises `JapaneseYen` but not `euro`.** Copied as-is; an
+  identifier is not ours to tidy.
+
+ENGI's `EN` is `:authority :none` and `:quantity-kind :mutual-credit`, not
+`:currency` — it has no issuer and pays no interest, and calling it money would
+make it addable to yen.
+
+**An unregistered spelling is reported, never guessed.** `:kilo` does not
+become kilograms by resembling them. The registry is small on purpose: measured
+2026-08-15, `kotoba-lang/plm` declares `:plm.item/uom` and populates it
+nowhere, so there is no divergent corpus to reconcile — this is the convention
+written down before divergence.
+
+```sh
+nbb bin/units.cljs --check                    # generated data matches the registry
+nbb bin/units.cljs --verify-om2 om-2.0.rdf     # every om-2 name really exists
+```
+
+`--verify-om2` takes a path rather than fetching, because the om-2 website
+returned 500 on 2026-08-15 and every `/resource/om-2/<name>` 404'd — a network
+check would fail for reasons unrelated to the registry. Without a readable file
+it exits **2**, not 0.
+
 ## Regenerate and verify
 
 ```sh
 nbb bin/ingest.cljs           # TTL -> vocabulary.edn + src/valueflows/data.cljc
 nbb bin/ingest.cljs --check    # 0 identical / 1 stale / 2 could not answer
-clojure -M:test                # 68 tests, 522 assertions
+nbb bin/units.cljs             # units.edn -> src/valueflows/unit_data.cljc
+clojure -M:test                # 80 tests, 582 assertions
 ```
 
 `--check` is three-valued on purpose. A missing TTL, a sha256 that does not

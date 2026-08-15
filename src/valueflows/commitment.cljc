@@ -26,7 +26,8 @@
 
    Overdue is only computable against an `:as-of`. Without one the answer is
    `:unknown`, never `false`."
-  (:require [valueflows.vocabulary :as vocab]))
+  (:require [valueflows.vocabulary :as vocab]
+            [valueflows.unit :as vfu]))
 
 ;; ── measures ──────────────────────────────────────────────────────────────
 
@@ -50,8 +51,10 @@
             (cond
               (nil? m) [:ok acc]
               (nil? acc) [:ok m]
-              (not= (unit acc) (unit m)) (reduced [:error {:code :unit-mismatch
-                                                           :units [(unit acc) (unit m)]}])
+              (and (not= (unit acc) (unit m))
+                   (not (vfu/same? (unit acc) (unit m))))
+              (reduced [:error {:code :unit-mismatch
+                                :units [(unit acc) (unit m)]}])
               :else [:ok (update acc :has-numerical-value + (qty m))]))
           [:ok nil] ms))
 
@@ -125,7 +128,9 @@
         (if (= :error tag)
           {:ok? false :insufficient :unit-mismatch
            :detail (assoc done :commitment id)}
-          (if (and done (not= (unit done) (unit promised)))
+          (if (and done
+                   (not= (unit done) (unit promised))
+                   (not (vfu/same? (unit done) (unit promised))))
             {:ok? false :insufficient :unit-mismatch
              :detail {:commitment id :units [(unit promised) (unit done)]}}
             (let [d (or (qty done) 0)
