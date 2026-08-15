@@ -91,6 +91,12 @@
   :litre {:label "litre" :symbol "L" :quantity-kind :volume
           :authority :om-2 :om-2 "litre"
           :aliases #{:liter :liters :litres :l}}
+  ;; Added 2026-08-15 because something started using it: cloud-itonami/uchiwake
+  ;; records a 330 ml product net content. The registry's own rule is that an
+  ;; entry arrives when a real value needs it, never speculatively.
+  :ml    {:label "millilitre" :symbol "mL" :quantity-kind :volume
+          :authority :om-2 :om-2 "millilitre"
+          :aliases #{:millilitre :milliliter :millilitres :milliliters}}
   :metre {:label "metre" :symbol "m" :quantity-kind :length
           :authority :om-2 :om-2 "metre"
           :aliases #{:meter :meters :metres :m}}

@@ -108,3 +108,15 @@
   (is (not (u/same? :micro-en :en)) "but they are not one unit, so nothing adds them")
   (is (not (u/compatible? :micro-en :jpy)))
   (is (= :none (u/authority :micro-en))))
+
+(deftest millilitre-was-added-because-something-used-it
+  ;; cloud-itonami/uchiwake records a 330 ml net content. Before this entry the
+  ;; registry answered :unregistered for it, which is correct behaviour and also
+  ;; a signal that the unit was in use.
+  (is (u/registered? :ml))
+  (is (= :volume (u/quantity-kind :ml)))
+  (is (u/compatible? :ml :litre) "same kind, so a caller may convert")
+  (is (not (u/same? :ml :litre)) "but they are not one unit")
+  (is (= "http://www.ontology-of-units-of-measure.org/resource/om-2/millilitre"
+         (u/om-2-iri :ml)))
+  (is (= :ml (u/canonical :millilitre))))

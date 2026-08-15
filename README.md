@@ -207,7 +207,7 @@ it exits **2**, not 0.
 nbb bin/ingest.cljs           # TTL -> vocabulary.edn + src/valueflows/data.cljc
 nbb bin/ingest.cljs --check    # 0 identical / 1 stale / 2 could not answer
 nbb bin/units.cljs             # units.edn -> src/valueflows/unit_data.cljc
-clojure -M:test                # 100 tests, 658 assertions
+clojure -M:test                # 101 tests, 664 assertions
 ```
 
 `--check` is three-valued on purpose. A missing TTL, a sha256 that does not

@@ -30,9 +30,9 @@
 (def registry-path "resources/valueflows/units.edn")
 (def out-path "src/valueflows/unit_data.cljc")
 
-;; Measured, not guessed: the registry has 18 units and 16 distinct om-2 names
+;; Measured, not guessed: the registry has 19 units and 17 distinct om-2 names
 ;; (:en and :micro-en have none). A reader that returns fewer has broken.
-(def floor {:units 18 :om-2-names 16})
+(def floor {:units 19 :om-2-names 17})
 
 (defn- die [code msg]
   (println msg)
