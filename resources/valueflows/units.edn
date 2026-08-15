@@ -6,14 +6,15 @@
 ;; workspace, the same reason manifest/concept-vocabulary.edn is hand-written
 ;; while the concept index is generated. What IS mechanical -- that every
 ;; :om-2 name below actually exists in the om-2 vocabulary -- is checked by
-;; bin/verify-units.cljs.
+;; bin/units.cljs --verify-om2.
 ;;
 ;; ## Why small
 ;;
 ;; There is no divergent unit corpus here to reconcile. Measured 2026-08-15:
 ;; `kotoba-lang/plm` DECLARES :plm.item/uom and :plm.bom/uom and populates
 ;; neither -- no test, no resource, no fixture sets a value. Every unit in
-;; actual use is in this library's own fixtures plus ENGI's EN. So this file is
+;; actual use is in this library's own fixtures plus ENGI's EN and micro-EN.
+;; So this file is
 ;; not a migration; it is the convention written down before divergence, and a
 ;; place for plm's empty field to point.
 ;;
@@ -117,9 +118,21 @@
           :aliases #{:euro :EUR}
           :note "om-2 spells this one lowercase while it capitalises the others"}
 
-  ;; A community unit with no external authority. Recorded with
-  ;; :authority :none rather than given a plausible-looking IRI, because
+  ;; Two community units with no external authority. Recorded with
+  ;; :authority :none rather than given plausible-looking IRIs, because
   ;; inventing one would make an unbacked identifier look backed.
+  ;;
+  ;; The ledger's own unit first. ENGI amounts are INTEGER micro-EN, and this is
+  ;; registered as its own unit rather than converted: dividing by a million to
+  ;; present EN would make the value a fraction, and integer exactness is what
+  ;; ENGI's zero-net-supply invariant rests on. Compatible with :en (same
+  ;; quantity kind) but not the same unit, so nothing adds them by accident.
+  :micro-en {:label "micro-EN" :symbol "µEN" :quantity-kind :mutual-credit
+             :authority :none
+             :aliases #{:uen :μEN :microEN}
+             :note "1 EN = 1,000,000 micro-EN. Conversion is the caller's
+                    decision, made where the rounding can be seen."}
+
   :en    {:label "EN" :symbol "EN" :quantity-kind :mutual-credit
           :authority :none
           :aliases #{:EN}

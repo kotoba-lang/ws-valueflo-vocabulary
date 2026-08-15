@@ -83,6 +83,14 @@
   :om-2 "metre",
   :quantity-kind :length,
   :symbol "m"},
+ :micro-en
+ {:aliases #{:uen :μEN :microEN},
+  :authority :none,
+  :label "micro-EN",
+  :note
+  "1 EN = 1,000,000 micro-EN. Conversion is the caller's\n                    decision, made where the rounding can be seen.",
+  :quantity-kind :mutual-credit,
+  :symbol "µEN"},
  :minute
  {:aliases #{:minutes :min},
   :authority :om-2,
@@ -192,6 +200,8 @@
  :metre :metre,
  :metres :metre,
  :metric-ton :t,
+ :micro-en :micro-en,
+ :microEN :micro-en,
  :min :minute,
  :minute :minute,
  :minutes :minute,
@@ -209,10 +219,12 @@
  :t :t,
  :tonne :t,
  :tonnes :t,
+ :uen :micro-en,
  :unit :each,
- :units :each, 
+ :units :each,
  :usd :usd, 
  :week :week, 
  :weeks :week, 
- :yen :jpy}
+ :yen :jpy, 
+ :μEN :micro-en}
 )

@@ -84,10 +84,11 @@
   (let [c (u/coverage)]
     (is (= (count u/registry) (:units c)))
     (is (contains? (:quantity-kinds c) :mutual-credit))
-    (is (= #{:en} (:without-authority c)))
+    (is (= #{:en :micro-en} (:without-authority c))
+        "both community units, neither pretending to an authority")
     (is (string? (:om-2-verified-at c)))
     (is (re-find #"no divergent unit corpus" (:note c))
-        "the registry says why it is small, so 17 cannot read as 'units are handled'")))
+        "the registry says why it is small, so a count cannot read as 'units are handled'")))
 
 (deftest no-alias-is-claimed-twice
   ;; bin/units.cljs refuses to generate when this is violated, because
@@ -96,3 +97,14 @@
   (let [pairs (for [[k v] u/registry a (:aliases v)] [a k])]
     (is (= (count pairs) (count (distinct (map first pairs))))
         "an alias claimed by two units would canonicalise unpredictably")))
+
+(deftest the-ledgers-own-unit-is-registered-rather-than-converted
+  ;; ENGI amounts are integer micro-EN. Dividing by a million to present EN
+  ;; would make the value a fraction, and integer exactness is what the
+  ;; zero-net-supply invariant rests on.
+  (is (u/registered? :micro-en))
+  (is (= :mutual-credit (u/quantity-kind :micro-en)))
+  (is (u/compatible? :micro-en :en) "same kind, so a caller may convert")
+  (is (not (u/same? :micro-en :en)) "but they are not one unit, so nothing adds them")
+  (is (not (u/compatible? :micro-en :jpy)))
+  (is (= :none (u/authority :micro-en))))
