@@ -1,0 +1,116 @@
+# ws-valueflo-vocabulary
+
+**[Valueflows](https://www.valueflo.ws/) — the REA (Resource–Event–Agent)
+vocabulary for distributed economic networks — as pinned EDN and portable
+`.cljc`.** A `kotoba-lang` origin-plane mirror: `valueflo.ws` reversed gives
+`ws-valueflo`, the same derivation as `org-ietf-x509` and `io-libp2p`
+(ADR-2608040100).
+
+Upstream is `https://w3id.org/valueflows/ont/vf`, pinned by sha256 in
+[`resources/valueflows/upstream.edn`](resources/valueflows/upstream.edn).
+Sibling repository: [`ws-valueflo-algorithms`](https://github.com/kotoba-lang/ws-valueflo-algorithms)
+implements the network-based algorithms on top of this.
+
+## Why this exists
+
+This workspace reached most of REA independently and under other names — MRP
+explosion in `kotoba-lang/plm`, mutual credit in `cloud-itonami/credits`,
+content-addressed receipts everywhere. What it lacked was a **shared economic
+vocabulary**, so an event in one actor could not be joined to a resource in
+another. Valueflows is that vocabulary, and as of ADR-2608153000 it is the
+one the 営み OS uses.
+
+## The operative part is the action behaviour table
+
+Valueflows has 19 actions. Each one carries eleven cells saying what it does
+to an inventoried resource — and that table, not the class diagram, is what
+makes the vocabulary executable:
+
+| action | inputOutput | accountingEffect | onhandEffect |
+|---|---|---|---|
+| `produce` | output | increment | increment |
+| `consume` | input | decrement | decrement |
+| `work` | input | notApplicable | notApplicable |
+| `use` | input | notApplicable | notApplicable |
+| `transfer` | notApplicable | decrementIncrement | decrementIncrement |
+| `transferAllRights` | notApplicable | decrementIncrement | **notApplicable** |
+| `transferCustody` | notApplicable | **notApplicable** | decrementIncrement |
+
+The last two rows are the reason to mirror the spec rather than paraphrase it:
+moving *rights* and moving *the thing* are separate registers, and most
+inventory models collapse them.
+
+**The table is published upstream as a PNG.** It is machine-readable only in
+the TTL, which is why `bin/ingest.cljs` reads the RDF and not the website — a
+mirror built from the rendered docs would have had to transcribe an image by
+eye.
+
+## Use
+
+```clojure
+(require '[valueflows.vocabulary :as vocab]
+         '[valueflows.event :as ev])
+
+(vocab/effect :transferCustody :accounting-effect)   ;=> :notApplicable
+(vocab/effort-based? :work)                          ;=> true
+
+;; REA accounting as a pure function; the arithmetic comes from the table
+(ev/apply-event {"grain" {:onhand-quantity {:has-numerical-value 100 :has-unit :kg}
+                          :accounting-quantity {:has-numerical-value 100 :has-unit :kg}}}
+                {:action :transfer :provider :farm :receiver :mill
+                 :resource-inventoried-as "grain"
+                 :to-resource-inventoried-as "grain-at-mill"
+                 :resource-quantity {:has-numerical-value 30 :has-unit :kg}
+                 :to-location :mill-yard})
+;=> {:ok? true :action :transfer :inventory {"grain" {...70...} "grain-at-mill" {...30...}}}
+```
+
+| namespace | what it is |
+|---|---|
+| `valueflows.data` | the vocabulary, generated. Not hand-edited |
+| `valueflows.vocabulary` | read access; the only place that knows the shape |
+| `valueflows.event` | apply events to an inventory, driven by the table |
+| `valueflows.conform` | structural conformance of events / commitments / intents |
+| `valueflows.datom` | projection onto this workspace's datom plane |
+| `valueflows.mapping` | where each VF term already lives here, and where it does not |
+
+## Regenerate and verify
+
+```sh
+nbb bin/ingest.cljs           # TTL -> vocabulary.edn + src/valueflows/data.cljc
+nbb bin/ingest.cljs --check    # 0 identical / 1 stale / 2 could not answer
+clojure -M:test                # 44 tests, 425 assertions
+```
+
+`--check` is three-valued on purpose. A missing TTL, a sha256 that does not
+match the pin, or a parse that falls below the measured evidence floor (19
+actions, 67 classes, 111 properties, 19 enum members) exits **2** — not 0.
+A mirror that cannot read its upstream must not report a pass
+(ADR-2608136000).
+
+## What this does not do
+
+- **No calendar arithmetic.** Time in the algorithms repo is a number the
+  caller defines.
+- **No RDF or GraphQL surface.** The vocabulary lands on the workspace's datom
+  plane; `vf-graphql` is not implemented.
+- **No claim of coverage.** `valueflows.mapping/summary` reports how many
+  classes were examined against how many exist, because the difference is
+  *unexamined*, not *absent*.
+- **It cannot verify its own mapping.** The repositories it cites are west
+  projects outside this tree. Each claim therefore carries an `:evidence`
+  citation with the date it was read, labelled as a citation rather than a
+  measurement.
+
+## Naming
+
+`ws-valueflo-vocabulary`, not `valueflows-clj` and not `org-valueflows`: the
+origin plane reverses the authority's registrable domain, `valueflo.ws`
+(NS-delegated, checked 2026-08-15). Language is not package identity, and
+`-clj` suffixes are prohibited workspace-wide.
+
+## Licence
+
+Apache-2.0 for this repository. The mirrored ontology is upstream's, released
+by the Valueflows project under Creative Commons Attribution 4.0; see
+`resources/valueflows/upstream.edn` and NOTICE.
