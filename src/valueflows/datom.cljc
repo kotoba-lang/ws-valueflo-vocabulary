@@ -17,11 +17,14 @@
    is not given a synthesised one (a fabricated key joins to the wrong row,
    which is worse than not joining).
 
-   ONE REF, ON PURPOSE: kotobase reaches exactly one ref for a Datalog join
-   (ADR-260726-kotobase-query-plane-is-one-ref), so events, resources,
-   processes and agents are projected into ONE dataset. Splitting them by
-   volume would make 'who produced the resource this event consumed'
-   unanswerable — the exact question the plane exists for."
+   ONE DATASET, ON PURPOSE: events, resources, processes and agents are
+   projected into ONE dataset. Not because a Datalog join can only reach one
+   ref — it reaches whatever is composed into one pattern source, and root
+   ADR-2809040800 supersedes ADR-260726 on exactly that point — but because
+   `manifest/edn-query.cljs` composes datasets and nothing else. A split made
+   here is therefore a split that nothing composes back, and 'who produced the
+   resource this event consumed' — the question the plane exists for — stops
+   being answerable in the surface that actually loads it."
   (:require [valueflows.vocabulary :as vocab]))
 
 (def dataset "valueflows")
