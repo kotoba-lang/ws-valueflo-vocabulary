@@ -14,7 +14,7 @@
 (ns ingest
   (:require ["fs" :as fs]
             ["crypto" :as crypto]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [clojure.pprint :as pprint]
             [clojure.edn :as edn]))
 
