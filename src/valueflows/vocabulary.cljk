@@ -2,7 +2,7 @@
   "Read access to the pinned Valueflows vocabulary.
 
    The vocabulary is data (`valueflows.data/vocabulary`, generated from the
-   upstream TTL by bin/ingest.cljs). This namespace is the only place that
+   upstream TTL by bin/ingest.cljk). This namespace is the only place that
    knows its shape, so a change upstream shows up here rather than in every
    caller.
 

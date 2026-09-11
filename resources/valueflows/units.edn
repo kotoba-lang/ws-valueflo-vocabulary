@@ -6,7 +6,7 @@
 ;; workspace, the same reason manifest/concept-vocabulary.edn is hand-written
 ;; while the concept index is generated. What IS mechanical -- that every
 ;; :om-2 name below actually exists in the om-2 vocabulary -- is checked by
-;; bin/units.cljs --verify-om2.
+;; bin/units.cljk --verify-om2.
 ;;
 ;; ## Why small
 ;;
