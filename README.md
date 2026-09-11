@@ -41,7 +41,7 @@ moving *rights* and moving *the thing* are separate registers, and most
 inventory models collapse them.
 
 **The table is published upstream as a PNG.** It is machine-readable only in
-the TTL, which is why `bin/ingest.cljs` reads the RDF and not the website — a
+the TTL, which is why `bin/ingest.cljk` reads the RDF and not the website — a
 mirror built from the rendered docs would have had to transcribe an image by
 eye.
 
@@ -192,8 +192,8 @@ nowhere, so there is no divergent corpus to reconcile — this is the convention
 written down before divergence.
 
 ```sh
-nbb bin/units.cljs --check                    # generated data matches the registry
-nbb bin/units.cljs --verify-om2 om-2.0.rdf     # every om-2 name really exists
+nbb bin/units.cljk --check                    # generated data matches the registry
+nbb bin/units.cljk --verify-om2 om-2.0.rdf     # every om-2 name really exists
 ```
 
 `--verify-om2` takes a path rather than fetching, because the om-2 website
@@ -204,9 +204,9 @@ it exits **2**, not 0.
 ## Regenerate and verify
 
 ```sh
-nbb bin/ingest.cljs           # TTL -> vocabulary.edn + src/valueflows/data.cljc
-nbb bin/ingest.cljs --check    # 0 identical / 1 stale / 2 could not answer
-nbb bin/units.cljs             # units.edn -> src/valueflows/unit_data.cljc
+nbb bin/ingest.cljk           # TTL -> vocabulary.edn + src/valueflows/data.cljk
+nbb bin/ingest.cljk --check    # 0 identical / 1 stale / 2 could not answer
+nbb bin/units.cljk             # units.edn -> src/valueflows/unit_data.cljk
 clojure -M:test                # 101 tests, 664 assertions
 ```
 

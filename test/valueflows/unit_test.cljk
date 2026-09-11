@@ -91,7 +91,7 @@
         "the registry says why it is small, so a count cannot read as 'units are handled'")))
 
 (deftest no-alias-is-claimed-twice
-  ;; bin/units.cljs refuses to generate when this is violated, because
+  ;; bin/units.cljk refuses to generate when this is violated, because
   ;; canonicalisation would depend on map iteration order. Asserted here too so
   ;; the property is visible where it matters.
   (let [pairs (for [[k v] u/registry a (:aliases v)] [a k])]

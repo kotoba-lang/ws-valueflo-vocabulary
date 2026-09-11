@@ -1,9 +1,9 @@
 ;; The pinned upstream this repository mirrors.
 ;;
 ;; resources/valueflows/vocabulary.edn is GENERATED from all_vf.ttl by
-;; bin/ingest.cljs. Neither file is hand-edited. To take a new upstream
+;; bin/ingest.cljk. Neither file is hand-edited. To take a new upstream
 ;; release: replace all_vf.ttl, update :sha256 / :fetched-at / :bytes here,
-;; re-run `nbb bin/ingest.cljs`, and read the diff.
+;; re-run `nbb bin/ingest.cljk`, and read the diff.
 ;;
 ;; :sha256 is what makes "which Valueflows" answerable. Without it the EDN
 ;; would claim to be the spec while being whatever someone last edited.
