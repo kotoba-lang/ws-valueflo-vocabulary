@@ -7,6 +7,6 @@
        }
 
  :aliases
- {;; clojure -M:test
+ {;; kbb -M:test
   :test {:extra-paths ["test"]
          :main-opts ["-m" "valueflows.test-runner"]}}}
