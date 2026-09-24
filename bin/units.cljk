@@ -24,7 +24,7 @@
   (:require ["fs" :as fs]
             ["crypto" :as crypto]
             [kotoba.lang.text :as str]
-            [clojure.pprint :as pprint]
+            [kotoba.pprint :as pprint]
             [clojure.edn :as edn]))
 
 (def registry-path "resources/valueflows/units.edn")
