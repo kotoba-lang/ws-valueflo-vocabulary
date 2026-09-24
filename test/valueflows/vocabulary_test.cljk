@@ -1,5 +1,5 @@
 (ns valueflows.vocabulary-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [valueflows.vocabulary :as vocab]))
 
 (deftest the-mirror-knows-what-it-mirrors

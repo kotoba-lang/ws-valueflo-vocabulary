@@ -1,5 +1,5 @@
 (ns valueflows.proposal-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [valueflows.proposal :as prop]))
 
 (defn m [n u] {:has-numerical-value n :has-unit u})

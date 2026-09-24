@@ -1,5 +1,5 @@
 (ns valueflows.mapping-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [valueflows.mapping :as m]
             [valueflows.vocabulary :as vocab]))
 
