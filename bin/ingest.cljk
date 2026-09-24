@@ -16,7 +16,7 @@
             ["crypto" :as crypto]
             [kotoba.lang.text :as str]
             [kotoba.pprint :as pprint]
-            [clojure.edn :as edn]))
+            [kotoba.lang.edn :as edn]))
 
 (def ttl-path "resources/valueflows/all_vf.ttl")
 (def upstream-path "resources/valueflows/upstream.edn")
