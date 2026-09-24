@@ -15,7 +15,7 @@
   (:require ["fs" :as fs]
             ["crypto" :as crypto]
             [kotoba.lang.text :as str]
-            [clojure.pprint :as pprint]
+            [kotoba.pprint :as pprint]
             [clojure.edn :as edn]))
 
 (def ttl-path "resources/valueflows/all_vf.ttl")
