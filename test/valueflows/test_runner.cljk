@@ -2,7 +2,7 @@
   "Explicit registration, no auto-discovery: a namespace that is not listed
    here does not run, and the count below says how many were asked for. A
    runner that discovers nothing and exits 0 is the failure mode this avoids."
-  (:require [clojure.test :as t]
+  (:require [kotoba.test :as t]
             [valueflows.vocabulary-test]
             [valueflows.event-test]
             [valueflows.conform-test]

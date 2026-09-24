@@ -1,5 +1,5 @@
 (ns valueflows.event-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [valueflows.event :as ev]))
 
 (def kg #(hash-map :has-numerical-value % :has-unit :kg))
