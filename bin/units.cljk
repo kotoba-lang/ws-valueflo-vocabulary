@@ -25,7 +25,7 @@
             ["crypto" :as crypto]
             [kotoba.lang.text :as str]
             [kotoba.pprint :as pprint]
-            [clojure.edn :as edn]))
+            [kotoba.lang.edn :as edn]))
 
 (def registry-path "resources/valueflows/units.edn")
 (def out-path "src/valueflows/unit_data.cljk")
