@@ -35,7 +35,7 @@
     :where ["orgs/cloud-itonami/cloud-itonami-lei-*" "orgs/com-junkawasaki/org-gleif-projections"]
     :join :company/lei
     :note "Legal entities carry an LEI, which is already the plane's join key."
-    :evidence "CLAUDE.md ADR-2607252000 dataset list; :company/lei joins market-intel"}
+    :evidence "AGENTS.md ADR-2607252000 dataset list; :company/lei joins market-intel"}
 
    :EconomicResource
    {:status :mapped
@@ -174,7 +174,7 @@
     :vf-native "valueflows.algorithms.track-trace"
     :where ["manifest/projection-verify.cljs" "orgs/kotoba-lang/kotobase"]
     :note "The workspace traces ARTEFACTS: content-addressed lineage, receipts binding input hash to output hash. Strong machinery, different object — it does not follow a resource through the events that consumed and produced it."
-    :evidence "CLAUDE.md projection-verify contract; ADR-2608039700"}
+    :evidence "AGENTS.md projection-verify contract; ADR-2608039700"}
 
    :provenance
    {:status :adjacent
@@ -189,7 +189,7 @@
     :vf-native "valueflows.algorithms.cash-flow"
     :note "Settlement and business metrics exist. Neither presents inflows and outflows on one timeline, historical and forecast, over resources other than money."
     :gap :money-only-and-not-time-phased
-    :evidence "orgs/cloud-itonami/credits/src/credits/engi/netting.clj; CLAUDE.md BMC section"}
+    :evidence "orgs/cloud-itonami/credits/src/credits/engi/netting.clj; AGENTS.md BMC section"}
 
    :network-flows
    {:status :different-formalism
